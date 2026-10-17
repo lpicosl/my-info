@@ -1,0 +1,1653 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Picos — Cyber & Anime Bio</title>
+
+    <!-- Иконка вкладки (Favicon) -->
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🌸</text></svg>">
+
+    <!-- Шрифты Inter и японский Noto Sans JP -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Noto+Sans+JP:wght@500;700;900&display=swap" rel="stylesheet">
+    
+    <style>
+        /* === ПЕРЕМЕННЫЕ И ЦВЕТА === */
+        :root {
+            --bg-main: #08090f;
+            --bg-card: rgba(18, 20, 32, 0.88);
+            --bg-card-hover: rgba(26, 29, 46, 0.96);
+            --text-primary: #f4f6fb;
+            --text-secondary: #8e95ab;
+            
+            /* Неоновые акценты */
+            --neon-cyan: #00f0ff;
+            --neon-pink: #ff2a85;
+            --neon-purple: #9d4edd;
+            --neon-gold: #ffbe0b;
+            --neon-glow-cyan: 0 0 16px rgba(0, 240, 255, 0.4);
+            --neon-glow-pink: 0 0 16px rgba(255, 42, 133, 0.4);
+        }
+
+        /* Режим пасхалки (Overdrive Mode при 5 кликах по аватарке) */
+        body.overdrive-mode {
+            --neon-cyan: #ffbe0b;
+            --neon-pink: #ff0055;
+            --neon-glow-cyan: 0 0 22px rgba(255, 190, 11, 0.6);
+            --neon-glow-pink: 0 0 22px rgba(255, 0, 85, 0.6);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            -webkit-user-select: none;
+            -moz-user-select: none;
+            user-select: none;
+            font-family: 'Inter', sans-serif;
+            background-color: var(--bg-main);
+            background-image: 
+                radial-gradient(circle at 15% 15%, rgba(255, 42, 133, 0.12) 0%, transparent 45%),
+                radial-gradient(circle at 85% 85%, rgba(0, 240, 255, 0.12) 0%, transparent 45%),
+                linear-gradient(rgba(255, 255, 255, 0.03) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(255, 255, 255, 0.03) 1px, transparent 1px);
+            background-size: 100% 100%, 100% 100%, 32px 32px, 32px 32px;
+            background-attachment: fixed;
+            color: var(--text-primary);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            padding: 40px 16px;
+            line-height: 1.5;
+            position: relative;
+            overflow-x: hidden;
+        }
+
+        img {
+            -webkit-user-drag: none;
+            user-drag: none;
+        }
+
+        /* Холст сакуры и искр курсора */
+        #sakuraCanvas {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: 1;
+        }
+
+        /* Фоновые японские иероглифы */
+        body::before {
+            content: "ゲーマー • アニメ";
+            font-family: 'Noto Sans JP', sans-serif;
+            position: fixed;
+            top: 8%;
+            right: -25px;
+            font-size: 4.5rem;
+            font-weight: 900;
+            color: rgba(255, 255, 255, 0.02);
+            writing-mode: vertical-rl;
+            pointer-events: none;
+            z-index: 0;
+        }
+
+        .container {
+            width: 100%;
+            max-width: 560px;
+            display: flex;
+            flex-direction: column;
+            gap: 26px;
+            position: relative;
+            z-index: 2;
+        }
+
+        /* Плавающая кнопка звука в углу */
+        .sound-toggle {
+            position: fixed;
+            top: 18px;
+            right: 18px;
+            z-index: 50;
+            background: var(--bg-card);
+            border: 1px solid rgba(255, 255, 255, 0.15);
+            color: var(--text-primary);
+            width: 40px;
+            height: 40px;
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            font-size: 1.1rem;
+            backdrop-filter: blur(10px);
+            transition: all 0.25s ease;
+        }
+
+        .sound-toggle:hover {
+            border-color: var(--neon-cyan);
+            box-shadow: var(--neon-glow-cyan);
+            transform: scale(1.06);
+        }
+
+        /* Всплывающее уведомление об ачивке (Пасхалка) */
+        .achievement-toast {
+            position: fixed;
+            bottom: -100px;
+            left: 50%;
+            transform: translateX(-50%);
+            z-index: 200;
+            background: linear-gradient(135deg, #1a1c2e, #0f111c);
+            border: 1px solid var(--neon-gold);
+            box-shadow: 0 0 25px rgba(255, 190, 11, 0.5);
+            padding: 12px 20px;
+            border-radius: 14px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            transition: bottom 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            white-space: nowrap;
+        }
+
+        .achievement-toast.show {
+            bottom: 24px;
+        }
+
+        .ach-icon {
+            font-size: 1.6rem;
+        }
+
+        .ach-title {
+            font-size: 0.72rem;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            color: var(--neon-gold);
+            font-weight: 700;
+        }
+
+        .ach-desc {
+            font-size: 0.9rem;
+            font-weight: 700;
+            color: #fff;
+        }
+
+        /* Заголовки секций */
+        .section-header {
+            display: flex;
+            align-items: baseline;
+            justify-content: space-between;
+            margin-bottom: 12px;
+        }
+
+        .section-title {
+            font-size: 0.85rem;
+            text-transform: uppercase;
+            letter-spacing: 1.5px;
+            color: var(--text-primary);
+            font-weight: 700;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .section-title::before {
+            content: "";
+            display: inline-block;
+            width: 8px;
+            height: 8px;
+            background: var(--neon-pink);
+            box-shadow: 0 0 8px var(--neon-pink);
+            transform: rotate(45deg);
+        }
+
+        .jp-sub {
+            font-family: 'Noto Sans JP', sans-serif;
+            font-size: 0.72rem;
+            color: var(--neon-cyan);
+            opacity: 0.75;
+            letter-spacing: 2px;
+        }
+
+        /* === 1. ШАПКА ПРОФИЛЯ + RPG LEVEL === */
+        .profile-header {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            text-align: center;
+            padding: 6px 0 0;
+        }
+
+        .avatar-wrapper {
+            position: relative;
+            width: 118px;
+            height: 118px;
+            border-radius: 50%;
+            padding: 3px;
+            background: linear-gradient(135deg, var(--neon-cyan), var(--neon-pink));
+            box-shadow: var(--neon-glow-pink), var(--neon-glow-cyan);
+            margin-bottom: 14px;
+            cursor: pointer;
+            transition: transform 0.3s ease;
+        }
+
+        .avatar-wrapper:hover {
+            transform: scale(1.05) rotate(2deg);
+        }
+
+        .avatar-wrapper:active {
+            transform: scale(0.96);
+        }
+
+        .anime-tag {
+            position: absolute;
+            bottom: -4px;
+            right: -8px;
+            background: linear-gradient(90deg, var(--neon-pink), var(--neon-purple));
+            color: #fff;
+            font-family: 'Noto Sans JP', sans-serif;
+            font-size: 0.68rem;
+            font-weight: 700;
+            padding: 2px 8px;
+            border-radius: 6px;
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.5);
+        }
+
+        .avatar-placeholder {
+            width: 100%;
+            height: 100%;
+            border-radius: 50%;
+            background: #12131c;
+            overflow: hidden;
+        }
+
+        .avatar-img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            display: block;
+        }
+
+        .nickname {
+            font-size: 1.9rem;
+            font-weight: 800;
+            letter-spacing: -0.5px;
+            margin-bottom: 2px;
+            background: linear-gradient(90deg, #ffffff, var(--neon-cyan), var(--neon-pink));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .bio {
+            font-size: 0.95rem;
+            color: var(--text-secondary);
+            font-weight: 500;
+            margin-bottom: 14px;
+        }
+
+        /* Полоска RPG-уровня */
+        .rpg-bar-card {
+            width: 100%;
+            max-width: 380px;
+            background: rgba(255, 255, 255, 0.03);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            border-radius: 12px;
+            padding: 10px 14px;
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+        }
+
+        .rpg-top {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-size: 0.76rem;
+            font-weight: 700;
+        }
+
+        .rpg-lvl-badge {
+            color: var(--neon-cyan);
+            letter-spacing: 0.5px;
+        }
+
+        .rpg-xp-text {
+            color: var(--text-secondary);
+            font-weight: 500;
+            font-size: 0.72rem;
+        }
+
+        .rpg-progress-track {
+            width: 100%;
+            height: 6px;
+            background: rgba(255, 255, 255, 0.08);
+            border-radius: 3px;
+            overflow: hidden;
+        }
+
+        .rpg-progress-fill {
+            height: 100%;
+            width: 70%;
+            background: linear-gradient(90deg, var(--neon-cyan), var(--neon-pink));
+            box-shadow: 0 0 10px var(--neon-cyan);
+            transition: width 0.8s ease;
+        }
+
+        /* === 2. БЛОК ОБО МНЕ === */
+        .about-card {
+            background: var(--bg-card);
+            backdrop-filter: blur(12px);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            border-radius: 16px;
+            padding: 18px 20px;
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.3);
+        }
+
+        .about-text {
+            font-size: 0.92rem;
+            color: #d1d5e4;
+            line-height: 1.6;
+        }
+
+        .about-badges {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+        }
+
+        .about-badge {
+            font-size: 0.75rem;
+            font-weight: 600;
+            padding: 4px 10px;
+            border-radius: 8px;
+            background: rgba(255, 255, 255, 0.04);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            color: var(--text-secondary);
+        }
+
+        .about-badge.highlight {
+            background: rgba(0, 240, 255, 0.1);
+            border-color: rgba(0, 240, 255, 0.3);
+            color: var(--neon-cyan);
+        }
+
+        /* === 3. БЛОК "МОЙ СЕТАП / ЖЕЛЕЗО" === */
+        .setup-card {
+            background: var(--bg-card);
+            backdrop-filter: blur(12px);
+            border: 1px solid rgba(0, 240, 255, 0.18);
+            border-radius: 16px;
+            padding: 18px 20px;
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.35);
+        }
+
+        .setup-tabs {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 8px;
+            background: rgba(9, 10, 16, 0.6);
+            padding: 5px;
+            border-radius: 12px;
+            border: 1px solid rgba(255, 255, 255, 0.06);
+        }
+
+        .setup-tab-btn {
+            background: transparent;
+            border: 1px solid transparent;
+            color: var(--text-secondary);
+            padding: 8px 10px;
+            border-radius: 8px;
+            font-family: inherit;
+            font-size: 0.85rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.25s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 6px;
+        }
+
+        .setup-tab-btn:hover {
+            color: var(--text-primary);
+        }
+
+        .setup-tab-btn.active {
+            background: linear-gradient(135deg, rgba(0, 240, 255, 0.16), rgba(255, 42, 133, 0.16));
+            border-color: var(--neon-cyan);
+            color: #ffffff;
+            box-shadow: 0 0 12px rgba(0, 240, 255, 0.25);
+        }
+
+        .setup-specs-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 10px;
+        }
+
+        .spec-item {
+            background: rgba(255, 255, 255, 0.03);
+            border: 1px solid rgba(255, 255, 255, 0.07);
+            border-radius: 12px;
+            padding: 12px 14px;
+            display: flex;
+            align-items: flex-start;
+            gap: 12px;
+            transition: all 0.25s ease;
+        }
+
+        .spec-item:hover {
+            border-color: var(--neon-pink);
+            background: rgba(255, 42, 133, 0.05);
+            transform: translateY(-2px);
+        }
+
+        .spec-icon {
+            width: 36px;
+            height: 36px;
+            border-radius: 10px;
+            background: rgba(0, 240, 255, 0.1);
+            border: 1px solid rgba(0, 240, 255, 0.25);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.1rem;
+            flex-shrink: 0;
+        }
+
+        .spec-details {
+            display: flex;
+            flex-direction: column;
+            min-width: 0;
+        }
+
+        .spec-category {
+            font-size: 0.68rem;
+            text-transform: uppercase;
+            letter-spacing: 0.6px;
+            color: var(--neon-cyan);
+            font-weight: 700;
+        }
+
+        .spec-name {
+            font-size: 0.88rem;
+            font-weight: 700;
+            color: #ffffff;
+            margin-top: 1px;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .spec-sub {
+            font-size: 0.74rem;
+            color: var(--text-secondary);
+            margin-top: 2px;
+        }
+
+        /* === 4. ВИДЖЕТ SHIKIMORI === */
+        .shiki-card {
+            background: linear-gradient(135deg, rgba(22, 24, 38, 0.95) 0%, rgba(14, 15, 24, 0.98) 100%);
+            border: 1px solid rgba(255, 42, 133, 0.25);
+            border-radius: 16px;
+            padding: 18px 20px;
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+            color: var(--text-primary);
+            transition: all 0.3s ease;
+            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.35);
+        }
+
+        .shiki-card:hover {
+            border-color: var(--neon-pink);
+            box-shadow: 0 0 20px rgba(255, 42, 133, 0.3);
+        }
+
+        .shiki-header-row {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .shiki-brand {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            text-decoration: none;
+            color: inherit;
+        }
+
+        .shiki-badge-icon {
+            width: 40px;
+            height: 40px;
+            border-radius: 10px;
+            background: rgba(255, 42, 133, 0.15);
+            border: 1px solid rgba(255, 42, 133, 0.4);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-family: 'Noto Sans JP', sans-serif;
+            font-weight: 900;
+            font-size: 1.15rem;
+            color: var(--neon-pink);
+        }
+
+        .shiki-name {
+            font-weight: 700;
+            font-size: 0.95rem;
+        }
+
+        .shiki-link-hint {
+            font-size: 0.75rem;
+            color: var(--neon-cyan);
+            margin-top: 1px;
+        }
+
+        .shiki-controls {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .shiki-sync-status {
+            font-size: 0.7rem;
+            padding: 3px 8px;
+            border-radius: 6px;
+            background: rgba(255, 255, 255, 0.05);
+            color: var(--text-secondary);
+            font-weight: 600;
+        }
+
+        .shiki-sync-status.live {
+            color: #10b981;
+            background: rgba(16, 185, 129, 0.12);
+            border: 1px solid rgba(16, 185, 129, 0.3);
+        }
+
+        .shiki-refresh-btn {
+            background: rgba(255, 255, 255, 0.06);
+            border: 1px solid rgba(255, 255, 255, 0.15);
+            color: var(--text-primary);
+            width: 28px;
+            height: 28px;
+            border-radius: 8px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.9rem;
+            transition: all 0.2s ease;
+        }
+
+        .shiki-refresh-btn:hover {
+            border-color: var(--neon-cyan);
+            color: var(--neon-cyan);
+            transform: rotate(180deg);
+        }
+
+        .shiki-group {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            padding-top: 10px;
+            border-top: 1px solid rgba(255, 255, 255, 0.05);
+            text-decoration: none;
+            color: inherit;
+        }
+
+        .shiki-group-title {
+            display: flex;
+            justify-content: space-between;
+            font-size: 0.75rem;
+            font-weight: 700;
+            letter-spacing: 0.8px;
+        }
+
+        .anime-title { color: #57a6ff; }
+        .manga-title { color: #c084fc; }
+
+        .shiki-total {
+            color: var(--text-secondary);
+            font-size: 0.72rem;
+            font-weight: 500;
+        }
+
+        .shiki-bar {
+            width: 100%;
+            height: 7px;
+            background: rgba(255, 255, 255, 0.08);
+            border-radius: 4px;
+            display: flex;
+            overflow: hidden;
+            gap: 1px;
+        }
+
+        .bar-segment {
+            height: 100%;
+            transition: width 0.6s ease;
+        }
+
+        .color-completed { background: #4176a8; }
+        .color-planned { background: #749bc2; }
+        .color-watching { background: #10b981; }
+        .color-dropped { background: #ef4444; }
+
+        .color-manga-completed { background: #9b6b9e; }
+        .color-manga-planned { background: #c59fc9; }
+        .color-manga-reading { background: #a855f7; }
+
+        .shiki-stat-counters {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 14px;
+            font-size: 0.78rem;
+            color: var(--text-secondary);
+        }
+
+        .shiki-stat-counters span b {
+            color: #ffffff;
+            font-weight: 700;
+            font-size: 0.85rem;
+        }
+
+        /* === 5. БЛОК ССЫЛОК === */
+        .links-list {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        .link-btn {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            background: var(--bg-card);
+            backdrop-filter: blur(10px);
+            color: var(--text-primary);
+            text-decoration: none;
+            padding: 16px 20px;
+            border-radius: 14px;
+            border: 1px solid rgba(255, 255, 255, 0.07);
+            font-weight: 600;
+            font-size: 0.96rem;
+            transition: all 0.28s ease;
+        }
+
+        .link-btn-left {
+            display: flex;
+            align-items: center;
+            gap: 14px;
+        }
+
+        .link-icon {
+            width: 22px;
+            height: 22px;
+            color: var(--neon-cyan);
+            transition: transform 0.3s ease, color 0.3s ease;
+            flex-shrink: 0;
+        }
+
+        .link-arrow {
+            color: var(--text-secondary);
+            font-size: 1.1rem;
+            transition: transform 0.3s ease, color 0.3s ease;
+        }
+
+        .link-btn:hover {
+            background: var(--bg-card-hover);
+            border-color: var(--neon-cyan);
+            box-shadow: var(--neon-glow-cyan);
+            transform: translateY(-2px);
+        }
+
+        .link-btn:hover .link-icon {
+            transform: scale(1.12);
+            color: var(--neon-pink);
+        }
+
+        .link-btn:hover .link-arrow {
+            transform: translateX(5px);
+            color: var(--neon-cyan);
+        }
+
+        /* === 6. ФОТОГАЛЕРЕЯ "МОИ МОМЕНТЫ" === */
+        .gallery-header-row {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 12px;
+        }
+
+        .shuffle-btn {
+            background: rgba(255, 255, 255, 0.06);
+            border: 1px solid rgba(255, 255, 255, 0.15);
+            color: var(--text-primary);
+            padding: 5px 12px;
+            border-radius: 8px;
+            font-size: 0.78rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .shuffle-btn:hover {
+            border-color: var(--neon-cyan);
+            color: var(--neon-cyan);
+            background: rgba(0, 240, 255, 0.08);
+        }
+
+        .gallery-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 12px;
+        }
+
+        .gallery-card {
+            position: relative;
+            aspect-ratio: 16 / 10;
+            border-radius: 14px;
+            overflow: hidden;
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            background: var(--bg-card);
+            cursor: pointer;
+            transition: border-color 0.3s ease, box-shadow 0.3s ease;
+        }
+
+        .gallery-card img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            transition: transform 0.45s ease;
+            display: block;
+        }
+
+        .gallery-card:hover {
+            border-color: var(--neon-pink);
+            box-shadow: var(--neon-glow-pink);
+        }
+
+        .gallery-card:hover img {
+            transform: scale(1.1);
+        }
+
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 100;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(9, 10, 16, 0.92);
+            backdrop-filter: blur(8px);
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+
+        .modal.open {
+            display: flex;
+        }
+
+        .modal-img {
+            max-width: 90%;
+            max-height: 85vh;
+            border-radius: 12px;
+            border: 1px solid var(--neon-cyan);
+            box-shadow: var(--neon-glow-cyan);
+            object-fit: contain;
+        }
+
+        .modal-close {
+            position: absolute;
+            top: 20px;
+            right: 25px;
+            color: #fff;
+            font-size: 2rem;
+            cursor: pointer;
+        }
+
+        /* === 7. СЛУЧАЙНЫЙ ФАКТ === */
+        .fact-box {
+            background: var(--bg-card);
+            border: 1px solid rgba(255, 255, 255, 0.07);
+            border-radius: 16px;
+            padding: 20px;
+            text-align: center;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 14px;
+        }
+
+        .fact-btn {
+            background: linear-gradient(135deg, rgba(0, 240, 255, 0.14), rgba(255, 42, 133, 0.18));
+            color: var(--text-primary);
+            border: 1px solid rgba(255, 42, 133, 0.5);
+            padding: 12px 22px;
+            border-radius: 12px;
+            font-family: inherit;
+            font-size: 0.92rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.25s ease;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .fact-btn:hover {
+            border-color: var(--neon-cyan);
+            box-shadow: var(--neon-glow-cyan);
+            transform: translateY(-2px);
+        }
+
+        .fact-display {
+            font-size: 0.93rem;
+            color: var(--text-secondary);
+            min-height: 44px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 0 8px;
+            transition: opacity 0.25s ease, transform 0.25s ease;
+        }
+
+        .fact-display.fade-out {
+            opacity: 0;
+            transform: translateY(4px);
+        }
+
+        footer {
+            text-align: center;
+            font-size: 0.78rem;
+            color: #5a6075;
+            margin-top: 6px;
+            font-family: 'Noto Sans JP', 'Inter', sans-serif;
+        }
+
+        @media (max-width: 500px) {
+            body { padding: 24px 14px; }
+            .nickname { font-size: 1.6rem; }
+            .gallery-grid { grid-template-columns: 1fr; }
+            .setup-specs-grid { grid-template-columns: 1fr; }
+            .setup-tab-btn { font-size: 0.78rem; padding: 8px 6px; }
+        }
+		
+		/* === ПАСХАЛКА GENSHIN IMPACT (ЗОЛОТОЕ СВЕЧЕНИЕ 5★) === */
+        .genshin-flash {
+            position: fixed;
+            inset: 0;
+            background: radial-gradient(circle, rgba(255, 215, 0, 0.4) 0%, rgba(255, 140, 0, 0.2) 50%, transparent 80%);
+            z-index: 300;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.4s ease;
+        }
+        .genshin-flash.active {
+            opacity: 1;
+        }
+
+        .genshin-banner {
+            position: fixed;
+            top: 25%;
+            left: 50%;
+            transform: translate(-50%, -50%) scale(0.7);
+            z-index: 301;
+            background: linear-gradient(135deg, #1b2038, #0f1322);
+            border: 2px solid #ffd700;
+            box-shadow: 0 0 35px rgba(255, 215, 0, 0.7);
+            padding: 16px 28px;
+            border-radius: 16px;
+            text-align: center;
+            opacity: 0;
+            pointer-events: none;
+            transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            white-space: nowrap;
+        }
+        .genshin-banner.show {
+            opacity: 1;
+            transform: translate(-50%, -50%) scale(1);
+        }
+        .genshin-stars {
+            color: #ffd700;
+            font-size: 1.3rem;
+            letter-spacing: 4px;
+            margin-bottom: 2px;
+            text-shadow: 0 0 10px rgba(255, 215, 0, 0.8);
+        }
+        .genshin-title {
+            font-size: 0.8rem;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            color: #ffe680;
+            font-weight: 700;
+        }
+        .genshin-sub {
+            font-size: 1.05rem;
+            font-weight: 800;
+            color: #fff;
+            margin-top: 2px;
+        }
+    </style>
+</head>
+<body>
+
+    <!-- Кнопка включения/выключения микро-звуков интерфейса -->
+    <button type="button" id="soundToggleBtn" class="sound-toggle" title="Звуковые эффекты интерфейса">🔊</button>
+
+    <!-- Всплывающая ачивка при активации пасхалки -->
+    <div id="achievementToast" class="achievement-toast">
+        <div class="ach-icon">🏆</div>
+        <div>
+            <div class="ach-title">Секретная ачивка разблокирована!</div>
+            <div class="ach-desc">Режим Киберпсихоза активирован</div>
+        </div>
+    </div>
+
+    <!-- Холст для сакуры и неонового следа мыши -->
+    <canvas id="sakuraCanvas"></canvas>
+
+    <main class="container">
+
+        <!-- ================= 1. ШАПКА + RPG УРОВЕНЬ ================= -->
+        <header class="profile-header">
+            <div class="avatar-wrapper" id="avatarEasterEgg" title="Нажми 5 раз для пасхалки!">
+                <div class="avatar-placeholder">
+                    <!-- ============================================================== -->
+                    <!-- 👇 ВСТАВЬ ССЫЛКУ НА СВОЮ АВАТАРКУ В АТРИБУТ src НИЖЕ 👇 -->
+                    <!-- ============================================================== -->
+                    <img id="userAvatar" class="avatar-img" src="https://gifs.obs.ru-moscow-1.hc.sbercloud.ru/8450d56bde899f75bd53ba6056690a1bd31c26eb.gif" alt="Picos Avatar">
+                </div>
+                <span class="anime-tag">ピコス</span>
+            </div>
+            <h1 class="nickname">Picos</h1>
+            <p class="bio">Picos — Геймер и меломан ✨</p>
+
+            <!-- RPG Уровень (рассчитывается автоматически от твоих аниме) -->
+            <div class="rpg-bar-card">
+                <div class="rpg-top">
+                    <span class="rpg-lvl-badge" id="rpgLevelTitle">⚡ LVL 61 • Кибер-Отаку</span>
+                    <span class="rpg-xp-text" id="rpgHoursText">~2 962 ч. в аниме (70% до LVL 62)</span>
+                </div>
+                <div class="rpg-progress-track">
+                    <div class="rpg-progress-fill" id="rpgProgressFill" style="width: 70%;"></div>
+                </div>
+            </div>
+        </header>
+
+        <!-- ================= 2. БЛОК ОБО МНЕ ================= -->
+        <section aria-label="Обо мне">
+            <div class="section-header">
+                <h2 class="section-title">Обо мне</h2>
+                <span class="jp-sub">プロフィール</span>
+            </div>
+            <div class="about-card">
+                <p class="about-text">
+                    Привет! Меня зовут Picos. Увлекаюсь видеоиграми, просмотром аниме и хорошей музыкой. Люблю эстетику киберпанка, неоновые ночные города и портативный гейминг на куче консолей.
+                </p>
+                <div class="about-badges">
+                    <span class="about-badge highlight">🎮 PC & Handheld Collector</span>
+                    <span class="about-badge highlight">⛩️ 600+ Anime Completed</span>
+                    <span class="about-badge">🎧 Meloman</span>
+                    <span class="about-badge">🌙 Night Owl</span>
+                </div>
+            </div>
+        </section>
+
+        <!-- ================= 3. БЛОК МОЙ СЕТАП / ЖЕЛЕЗО И КОНСОЛИ ================= -->
+        <section aria-label="Мой Сетап и Консоли">
+            <div class="section-header">
+                <h2 class="section-title">Мой Сетап / Железо</h2>
+                <span class="jp-sub">ギア & デバイス</span>
+            </div>
+
+            <div class="setup-card">
+                <!-- Переключатели категорий -->
+                <div class="setup-tabs">
+                    <button type="button" class="setup-tab-btn active" data-tab="pc">🖥️ Игровой ПК</button>
+                    <button type="button" class="setup-tab-btn" data-tab="devices">🎮 Консоли и VR</button>
+                </div>
+
+                <!-- Контейнер характеристик -->
+                <div class="setup-specs-grid" id="setupSpecsGrid"></div>
+            </div>
+        </section>
+
+        <!-- ================= 4. ЖИВОЙ АНИМЕ-ВИДЖЕТ SHIKIMORI ================= -->
+        <section aria-label="Профиль Shikimori">
+            <div class="section-header">
+                <h2 class="section-title">Аниме-профиль</h2>
+                <span class="jp-sub">アニメリスト</span>
+            </div>
+
+            <div class="shiki-card">
+                <div class="shiki-header-row">
+                    <a href="https://shikimori.io/picos" target="_blank" rel="noopener noreferrer" class="shiki-brand">
+                        <div class="shiki-badge-icon">漫</div>
+                        <div>
+                            <div class="shiki-name">Shikimori • @picos</div>
+                            <div class="shiki-link-hint">Открыть полный профиль →</div>
+                        </div>
+                    </a>
+                    <div class="shiki-controls">
+                        <span id="shikiSyncBadge" class="shiki-sync-status">Синхронизация...</span>
+                        <button type="button" id="shikiRefreshBtn" class="shiki-refresh-btn" title="Обновить данные с Shikimori">↻</button>
+                    </div>
+                </div>
+
+                <!-- Список Аниме -->
+                <a href="https://shikimori.io/picos/list/anime" target="_blank" rel="noopener noreferrer" class="shiki-group">
+                    <div class="shiki-group-title anime-title">
+                        <span>СПИСОК АНИМЕ</span>
+                        <span id="shikiAnimeTotal" class="shiki-total">Всего: 865</span>
+                    </div>
+                    <div class="shiki-bar">
+                        <div id="barAnimeCompleted" class="bar-segment color-completed" style="width: 71.3%"></div>
+                        <div id="barAnimePlanned" class="bar-segment color-planned" style="width: 27.5%"></div>
+                        <div id="barAnimeWatching" class="bar-segment color-watching" style="width: 0.9%"></div>
+                        <div id="barAnimeDropped" class="bar-segment color-dropped" style="width: 0.3%"></div>
+                    </div>
+                    <div class="shiki-stat-counters">
+                        <span><b id="animeCompleted">617</b> просмотрено</span>
+                        <span><b id="animePlanned">238</b> запланировано</span>
+                        <span><b id="animeWatching">8</b> смотрю</span>
+                        <span><b id="animeDropped">2</b> брошено</span>
+                    </div>
+                </a>
+
+                <!-- Список Манги -->
+                <a href="https://shikimori.io/picos/list/manga" target="_blank" rel="noopener noreferrer" class="shiki-group">
+                    <div class="shiki-group-title manga-title">
+                        <span>СПИСОК МАНГИ</span>
+                        <span id="shikiMangaTotal" class="shiki-total">Всего: 12</span>
+                    </div>
+                    <div class="shiki-bar">
+                        <div id="barMangaCompleted" class="bar-segment color-manga-completed" style="width: 25%"></div>
+                        <div id="barMangaPlanned" class="bar-segment color-manga-planned" style="width: 33.3%"></div>
+                        <div id="barMangaReading" class="bar-segment color-manga-reading" style="width: 41.7%"></div>
+                    </div>
+                    <div class="shiki-stat-counters">
+                        <span><b id="mangaCompleted">3</b> прочитано</span>
+                        <span><b id="mangaPlanned">4</b> запланировано</span>
+                        <span><b id="mangaReading">5</b> читаю</span>
+                    </div>
+                </a>
+            </div>
+        </section>
+
+        <!-- ================= 5. БЛОК ССЫЛОК ================= -->
+        <section aria-label="Мои ссылки">
+            <div class="section-header">
+                <h2 class="section-title">Ссылки и контакты</h2>
+                <span class="jp-sub">リンク</span>
+            </div>
+            <div class="links-list">
+                
+                <a href="https://steamcommunity.com/id/lpicosl/" target="_blank" rel="noopener noreferrer" class="link-btn sound-item">
+                    <div class="link-btn-left">
+                        <svg class="link-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M6 12h4m-2-2v4m7-1h.01M18 11h.01M4 6h16a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2z"/>
+                        </svg>
+                        <span>Профиль Steam</span>
+                    </div>
+                    <span class="link-arrow">→</span>
+                </a>
+
+                <a href="https://t.me/lpicosl" target="_blank" rel="noopener noreferrer" class="link-btn sound-item">
+                    <div class="link-btn-left">
+                        <svg class="link-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <line x1="22" y1="2" x2="11" y2="13"></line>
+                            <polygon points="22 2 15 22 11 13 2 9 22 2"></polygon>
+                        </svg>
+                        <span>Telegram (@lpicosl)</span>
+                    </div>
+                    <span class="link-arrow">→</span>
+                </a>
+
+                <a href="https://www.tiktok.com/@lpicosl" target="_blank" rel="noopener noreferrer" class="link-btn sound-item">
+                    <div class="link-btn-left">
+                        <svg class="link-icon" viewBox="0 0 24 24" fill="currentColor">
+                            <path d="M19.59 6.69a4.83 4.83 0 0 1-3.77-4.25V2h-3.45v13.67a2.89 2.89 0 0 1-5.2 1.74 2.89 2.89 0 0 1 2.31-4.64c.29 0 .58.04.86.12V9.42a6.34 6.34 0 0 0-.86-.06 6.34 6.34 0 0 0-6.34 6.34 6.34 6.34 0 0 0 6.34 6.34 6.34 6.34 0 0 0 6.34-6.34V8.75a8.16 8.16 0 0 0 4.77 1.52V6.82a4.85 4.85 0 0 1-1-.13z"/>
+                        </svg>
+                        <span>TikTok (@lpicosl)</span>
+                    </div>
+                    <span class="link-arrow">→</span>
+                </a>
+
+                <a href="https://shikimori.io/picos" target="_blank" rel="noopener noreferrer" class="link-btn sound-item">
+                    <div class="link-btn-left">
+                        <svg class="link-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon>
+                        </svg>
+                        <span>Мой список на Shikimori</span>
+                    </div>
+                    <span class="link-arrow">→</span>
+                </a>
+
+            </div>
+        </section>
+
+        <!-- ================= 6. ДИНАМИЧЕСКАЯ ФОТОГАЛЕРЕЯ ================= -->
+        <section aria-label="Фотогалерея">
+            <div class="gallery-header-row">
+                <div class="section-header" style="margin-bottom: 0;">
+                    <h2 class="section-title">Мои моменты</h2>
+                    <span class="jp-sub">ギャラリー</span>
+                </div>
+                <button type="button" id="shuffleGalleryBtn" class="shuffle-btn">
+                    <span>🎲</span> Перемешать
+                </button>
+            </div>
+            
+            <div class="gallery-grid" id="galleryGrid"></div>
+        </section>
+
+        <!-- ================= 7. СЛУЧАЙНЫЙ ФАКТ ОБО МНЕ ================= -->
+        <section aria-label="Случайный факт">
+            <div class="section-header">
+                <h2 class="section-title">Интерактив</h2>
+                <span class="jp-sub">ランダム</span>
+            </div>
+            <div class="fact-box">
+                <button id="factButton" class="fact-btn" type="button">
+                    <span>⛩️</span> Узнать случайный факт обо мне
+                </button>
+                <p id="factText" class="fact-display">
+                    Нажми на кнопку выше, чтобы узнать рандомный факт!
+                </p>
+            </div>
+        </section>
+
+        <footer>
+            © 2026 Picos • サイバーパンク & アニメ
+        </footer>
+
+    </main>
+
+    <!-- Полноэкранный просмотр фото -->
+    <div id="imageModal" class="modal">
+        <span class="modal-close" id="modalClose">&times;</span>
+        <img class="modal-img" id="modalImg" src="" alt="Full view">
+    </div>
+
+    <script>
+        /* =====================================================================
+           0. ФУТУРИСТИЧНЫЕ МИКРО-ЗВУКИ ИНТЕРФЕЙСА (WEB AUDIO API)
+           ===================================================================== */
+        let soundEnabled = true;
+        let audioCtx = null;
+
+        function playCyberBeep(freq = 520, duration = 0.05, type = 'sine') {
+            if (!soundEnabled) return;
+            try {
+                if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+                if (audioCtx.state === 'suspended') audioCtx.resume();
+
+                const osc = audioCtx.createOscillator();
+                const gain = audioCtx.createGain();
+                osc.type = type;
+                osc.frequency.setValueAtTime(freq, audioCtx.currentTime);
+
+                gain.gain.setValueAtTime(0.04, audioCtx.currentTime);
+                gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + duration);
+
+                osc.connect(gain);
+                gain.connect(audioCtx.destination);
+                osc.start();
+                osc.stop(audioCtx.currentTime + duration);
+            } catch (e) {}
+        }
+
+        const soundBtn = document.getElementById('soundToggleBtn');
+        soundBtn.addEventListener('click', () => {
+            soundEnabled = !soundEnabled;
+            soundBtn.textContent = soundEnabled ? '🔊' : '🔇';
+            if (soundEnabled) playCyberBeep(660, 0.08);
+        });
+
+        document.querySelectorAll('.sound-item, button').forEach(el => {
+            el.addEventListener('mouseenter', () => playCyberBeep(440, 0.03));
+            el.addEventListener('click', () => playCyberBeep(720, 0.07, 'triangle'));
+        });
+
+
+        /* =====================================================================
+           1. ПАСХАЛКА: 5 КЛИКОВ ПО АВАТАРКЕ -> РЕЖИМ КИБЕРПСИХОЗА
+           ===================================================================== */
+        let avatarClicks = 0;
+        let clickTimer = null;
+        let isOverdrive = false;
+
+        document.getElementById('avatarEasterEgg').addEventListener('click', () => {
+            avatarClicks++;
+            playCyberBeep(300 + avatarClicks * 110, 0.06, 'sawtooth');
+
+            clearTimeout(clickTimer);
+            clickTimer = setTimeout(() => { avatarClicks = 0; }, 1800);
+
+            if (avatarClicks >= 5) {
+                avatarClicks = 0;
+                isOverdrive = !isOverdrive;
+                document.body.classList.toggle('overdrive-mode', isOverdrive);
+
+                if (isOverdrive) {
+                    const toast = document.getElementById('achievementToast');
+                    toast.classList.add('show');
+                    playCyberBeep(880, 0.15, 'square');
+                    setTimeout(() => playCyberBeep(1174, 0.25, 'square'), 150);
+                    setTimeout(() => toast.classList.remove('show'), 4500);
+                }
+            }
+        });
+
+
+        /* =====================================================================
+           2. ДАННЫЕ БЛОКА "МОЙ СЕТАП / ЖЕЛЕЗО" (ТВОЕ РЕАЛЬНОЕ ЖЕЛЕЗО И КОНСОЛИ)
+           ===================================================================== */
+        const myGearData = {
+            pc: [
+                { icon: "⚡", category: "Процессор", name: "AMD Ryzen 5 5600X", sub: "AM4 • 6 ядер / 12 потоков" },
+                { icon: "🚀", category: "Видеокарта", name: "NVIDIA RTX 5060 Ti", sub: "16 GB VRAM • DLSS / Ray Tracing" },
+                { icon: "🧠", category: "Оперативная память", name: "32 GB RAM", sub: "Высокая производительность" }
+            ],
+            devices: [
+                { icon: "🥽", category: "VR Шлем", name: "Pico 4 VR", sub: "Автономный & PCVR гейминг" },
+                { icon: "🟩", category: "Стационарная консоль", name: "Xbox Series S", sub: "Быстрый гейминг & Game Pass" },
+                { icon: "🎮", category: "Портативка", name: "Steam Deck OLED", sub: "Основная игровая консоль в дороге" },
+                { icon: "🔴", category: "Портативка", name: "Nintendo Switch Lite", sub: "Эксклюзивы Nintendo" },
+                { icon: "👾", category: "Ретро-консоль", name: "Nintendo 3DS", sub: "Кастомная прошивка (Luma3DS)" }
+            ]
+        };
+
+        function renderGearTab(tabKey) {
+            const grid = document.getElementById('setupSpecsGrid');
+            grid.innerHTML = '';
+            const list = myGearData[tabKey] || [];
+
+            list.forEach(item => {
+                const div = document.createElement('div');
+                div.className = 'spec-item';
+                div.innerHTML = `
+                    <div class="spec-icon">${item.icon}</div>
+                    <div class="spec-details">
+                        <span class="spec-category">${item.category}</span>
+                        <span class="spec-name">${item.name}</span>
+                        <span class="spec-sub">${item.sub}</span>
+                    </div>
+                `;
+                grid.appendChild(div);
+            });
+        }
+
+        // Переключение табов сетапа
+        document.querySelectorAll('.setup-tab-btn').forEach(btn => {
+            btn.addEventListener('click', () => {
+                document.querySelectorAll('.setup-tab-btn').forEach(b => b.classList.remove('active'));
+                btn.classList.add('active');
+                renderGearTab(btn.getAttribute('data-tab'));
+            });
+        });
+
+        // Показываем вкладку ПК при старте
+        renderGearTab('pc');
+
+
+        /* =====================================================================
+           3. ПУЛ КАРТИНОК ДЛЯ "МОИ МОМЕНТЫ"
+           ===================================================================== */
+        const myMomentsPool = [
+            "https://images.steamusercontent.com/ugc/10392567329875214944/1CB70C1A8E268E4720DA432EC16E47F54C28022A/?imw=5000&imh=5000&ima=fit&impolicy=Letterbox&imcolor=%23000000&letterbox=false",
+            "https://images.unsplash.com/photo-1578632767115-351597cf2477?auto=format&fit=crop&w=800&q=80",
+            "https://images.unsplash.com/photo-1503899036084-c55cdd92da26?auto=format&fit=crop&w=800&q=80",
+            "https://sun9-48.vkuserphoto.ru/s/v1/ig2/OhN81Y_vp7YXuoBikLyFWZVlcPhiOHqVjtOFrF9XW-X2E6BCj6DYlFAqEAcgD2IjG9q7k_VIrLJxj4RlKE2nR_N07EFZ_A.jpg?quality=95&as=32x18,48x27,72x40,108x61,160x90,240x135,360x202,480x270,540x304,640x360,720x405,1080x607,1280x720,1440x810,1920x1080&from=bu&u=Htxobpy7Ecq_QRAn3OCzx6E5MRTPqr0xu2kAhT2NbjM&cs=1920x0",
+            "https://sun9-69.vkuserphoto.ru/s/v1/ig2/mtIesXgktoZCBbovxGaPJdKC9iKFaNlkPnavo__Hcy-g2fatGGpWdmBrbNg8HYkTDg5ujzi5xMrEC1CtjzcflYSr.jpg?quality=95&as=32x18,48x27,72x40,108x61,160x90,240x135,360x202,480x270,540x304,640x360,720x405,1080x607,1280x720,1440x810,1920x1080&from=bu&cs=1920x0",
+            "https://sun9-8.vkuserphoto.ru/s/v1/ig2/n0Xk7jXZ7hn5esQhx-vmViQK80FXwywM7FafcqAxqxPno8DPeb7sDMwAr4s937EEG29t5ga6eTCCBZq7vr6FU9JbPCVTvw.jpg?quality=95&as=32x18,48x27,72x40,108x61,160x90,240x135,360x202,480x270,540x304,640x360,720x405,1080x607,1280x720,1440x810,1920x1080&from=bu&cs=1920x0",
+			"https://images.steamusercontent.com/ugc/2048614909821424895/6A943BD226DC61B822C0C2EFB3D2B8019F6D0488/?imw=5000&imh=5000&ima=fit&impolicy=Letterbox&imcolor=%23000000&letterbox=false"
+        ];
+
+        function renderGallery() {
+            const galleryGrid = document.getElementById('galleryGrid');
+            galleryGrid.innerHTML = '';
+            const shuffled = [...myMomentsPool].sort(() => 0.5 - Math.random());
+            const selectedImages = shuffled.slice(0, 4);
+
+            selectedImages.forEach(url => {
+                const card = document.createElement('div');
+                card.className = 'gallery-card';
+                card.innerHTML = `<img src="${url}" alt="Moment">`;
+                
+                card.addEventListener('click', () => {
+                    document.getElementById('modalImg').src = url;
+                    document.getElementById('imageModal').classList.add('open');
+                });
+
+                galleryGrid.appendChild(card);
+            });
+        }
+
+        document.getElementById('shuffleGalleryBtn').addEventListener('click', renderGallery);
+        renderGallery();
+
+        document.getElementById('modalClose').addEventListener('click', () => {
+            document.getElementById('imageModal').classList.remove('open');
+        });
+        document.getElementById('imageModal').addEventListener('click', (e) => {
+            if (e.target.id === 'imageModal') {
+                document.getElementById('imageModal').classList.remove('open');
+            }
+        });
+
+
+        /* =====================================================================
+           4. РЕАЛЬНЫЙ ПАРСИНГ SHIKIMORI + RPG УРОВЕНЬ
+           ===================================================================== */
+        function applyShikimoriUI(aStats, mStats) {
+            document.getElementById('animeCompleted').textContent = aStats.completed;
+            document.getElementById('animePlanned').textContent = aStats.planned;
+            document.getElementById('animeWatching').textContent = aStats.watching;
+            document.getElementById('animeDropped').textContent = aStats.dropped;
+
+            const aTotal = aStats.completed + aStats.planned + aStats.watching + aStats.dropped;
+            document.getElementById('shikiAnimeTotal').textContent = `Всего: ${aTotal}`;
+
+            if (aTotal > 0) {
+                document.getElementById('barAnimeCompleted').style.width = `${(aStats.completed / aTotal) * 100}%`;
+                document.getElementById('barAnimePlanned').style.width = `${(aStats.planned / aTotal) * 100}%`;
+                document.getElementById('barAnimeWatching').style.width = `${(aStats.watching / aTotal) * 100}%`;
+                document.getElementById('barAnimeDropped').style.width = `${(aStats.dropped / aTotal) * 100}%`;
+            }
+
+            const lvl = Math.floor(aStats.completed / 10);
+            const xpPercent = (aStats.completed % 10) * 10;
+            const estHours = Math.round(aStats.completed * 12 * 0.4).toLocaleString('ru-RU');
+            document.getElementById('rpgLevelTitle').textContent = `⚡ LVL ${lvl} • Кибер-Отаку`;
+            document.getElementById('rpgHoursText').textContent = `~${estHours} ч. в аниме (${xpPercent}% до LVL ${lvl + 1})`;
+            document.getElementById('rpgProgressFill').style.width = `${xpPercent}%`;
+
+            document.getElementById('mangaCompleted').textContent = mStats.completed;
+            document.getElementById('mangaPlanned').textContent = mStats.planned;
+            document.getElementById('mangaReading').textContent = mStats.watching;
+
+            const mTotal = mStats.completed + mStats.planned + mStats.watching;
+            document.getElementById('shikiMangaTotal').textContent = `Всего: ${mTotal}`;
+
+            if (mTotal > 0) {
+                document.getElementById('barMangaCompleted').style.width = `${(mStats.completed / mTotal) * 100}%`;
+                document.getElementById('barMangaPlanned').style.width = `${(mStats.planned / mTotal) * 100}%`;
+                document.getElementById('barMangaReading').style.width = `${(mStats.watching / mTotal) * 100}%`;
+            }
+        }
+
+        async function fetchShikimoriStats() {
+            const syncBadge = document.getElementById('shikiSyncBadge');
+            syncBadge.textContent = 'Обновление...';
+            syncBadge.classList.remove('live');
+
+            const freshApiUrlIo = `https://shikimori.io/api/users/picos?_nocache=${Date.now()}`;
+
+            const endpoints = [
+                freshApiUrlIo,
+                `https://corsproxy.io/?${encodeURIComponent(freshApiUrlIo)}`,
+                `https://api.codetabs.com/v1/proxy?quest=${encodeURIComponent(freshApiUrlIo)}`
+            ];
+
+            for (const url of endpoints) {
+                try {
+                    const res = await fetch(url, { cache: 'no-store' });
+                    if (!res.ok) continue;
+
+                    const data = await res.json();
+                    const animeStatuses = data?.stats?.statuses?.anime;
+                    const mangaStatuses = data?.stats?.statuses?.manga;
+
+                    if (Array.isArray(animeStatuses)) {
+                        const aStats = { completed: 0, planned: 0, watching: 0, dropped: 0 };
+                        animeStatuses.forEach(item => {
+                            if (item.name === 'completed') aStats.completed += item.size;
+                            if (item.name === 'planned' || item.name === 'on_hold') aStats.planned += item.size;
+                            if (item.name === 'watching' || item.name === 'rewatching') aStats.watching += item.size;
+                            if (item.name === 'dropped') aStats.dropped += item.size;
+                        });
+
+                        const mStats = { completed: 0, planned: 0, watching: 0 };
+                        if (Array.isArray(mangaStatuses)) {
+                            mangaStatuses.forEach(item => {
+                                if (item.name === 'completed') mStats.completed += item.size;
+                                if (item.name === 'planned' || item.name === 'on_hold') mStats.planned += item.size;
+                                if (item.name === 'watching' || item.name === 'rewatching') mStats.watching += item.size;
+                            });
+                        }
+
+                        applyShikimoriUI(aStats, mStats);
+                        syncBadge.textContent = '● Live API';
+                        syncBadge.classList.add('live');
+                        return;
+                    }
+                } catch (e) {}
+            }
+
+            syncBadge.textContent = 'Актуально';
+        }
+
+        document.getElementById('shikiRefreshBtn').addEventListener('click', fetchShikimoriStats);
+        fetchShikimoriStats();
+
+
+        /* =====================================================================
+           5. СЛУЧАЙНЫЙ ФАКТ ОБО МНЕ
+           ===================================================================== */
+        const facts = [
+            "Могу часами настраивать графику и моды, а потом выйти из игры через 15 минут.",
+            "В моем плейлисте мирно соседствуют синтвейв, рок и опенинги из аниме.",
+            "Никогда не пропускаю вступительные заставки, если там играет классный саундтрек.",
+            "Считаю, что неоновая подсветка в комнате дает +15% к скиллу в любой катке.",
+            "Если аниме или игра зацепили с первых минут — сон откладывается до утра."
+        ];
+
+        const factButton = document.getElementById('factButton');
+        const factText = document.getElementById('factText');
+        let lastIndex = -1;
+
+        factButton.addEventListener('click', () => {
+            let randomIndex;
+            do {
+                randomIndex = Math.floor(Math.random() * facts.length);
+            } while (randomIndex === lastIndex && facts.length > 1);
+
+            lastIndex = randomIndex;
+            factText.classList.add('fade-out');
+
+            setTimeout(() => {
+                factText.textContent = facts[randomIndex];
+                factText.classList.remove('fade-out');
+            }, 200);
+        });
+
+
+        /* =====================================================================
+           6. САКУРА + НЕОНОВЫЕ ИСКРЫ ЗА КУРСОРОМ МЫШИ
+           ===================================================================== */
+        const canvas = document.getElementById('sakuraCanvas');
+        const ctx = canvas.getContext('2d');
+
+        let width = canvas.width = window.innerWidth;
+        let height = canvas.height = window.innerHeight;
+
+        window.addEventListener('resize', () => {
+            width = canvas.width = window.innerWidth;
+            height = canvas.height = window.innerHeight;
+        });
+
+        const petals = [];
+        const sparks = [];
+        const petalCount = 26;
+
+        class Petal {
+            constructor() {
+                this.reset();
+            }
+            reset() {
+                this.x = Math.random() * width;
+                this.y = Math.random() * -height;
+                this.size = Math.random() * 8 + 6;
+                this.speedX = Math.random() * 1.4 - 0.4;
+                this.speedY = Math.random() * 1.2 + 0.8;
+                this.rotation = Math.random() * 360;
+                this.rotationSpeed = Math.random() * 1.5 - 0.75;
+                this.opacity = Math.random() * 0.45 + 0.25;
+            }
+            update() {
+                const mult = isOverdrive ? 3.2 : 1;
+                this.x += (this.speedX + Math.sin(this.y * 0.01) * 0.6) * mult;
+                this.y += this.speedY * mult;
+                this.rotation += this.rotationSpeed * mult;
+
+                if (this.y > height + 20 || this.x < -20 || this.x > width + 20) {
+                    this.reset();
+                    this.y = -10;
+                }
+            }
+            draw() {
+                ctx.save();
+                ctx.translate(this.x, this.y);
+                ctx.rotate((this.rotation * Math.PI) / 180);
+                ctx.globalAlpha = this.opacity;
+
+                const grad = ctx.createLinearGradient(0, 0, this.size, this.size);
+                grad.addColorStop(0, isOverdrive ? '#ffbe0b' : '#ff2a85');
+                grad.addColorStop(1, isOverdrive ? '#ff0055' : '#ffb7d5');
+
+                ctx.fillStyle = grad;
+                ctx.beginPath();
+                ctx.moveTo(0, 0);
+                ctx.bezierCurveTo(-this.size / 2, -this.size / 2, -this.size, this.size / 3, 0, this.size);
+                ctx.bezierCurveTo(this.size, this.size / 3, this.size / 2, -this.size / 2, 0, 0);
+                ctx.fill();
+                ctx.restore();
+            }
+        }
+
+        for (let i = 0; i < petalCount; i++) petals.push(new Petal());
+
+        window.addEventListener('mousemove', (e) => {
+            if (Math.random() > 0.45) return;
+            sparks.push({
+                x: e.clientX,
+                y: e.clientY,
+                vx: (Math.random() - 0.5) * 1.5,
+                vy: (Math.random() - 0.5) * 1.5 + 0.5,
+                alpha: 0.9,
+                size: Math.random() * 3 + 1.5,
+                color: Math.random() > 0.5 ? '#00f0ff' : '#ff2a85'
+            });
+        });
+
+        function animateScene() {
+            ctx.clearRect(0, 0, width, height);
+            petals.forEach(p => { p.update(); p.draw(); });
+
+            for (let i = sparks.length - 1; i >= 0; i--) {
+                const s = sparks[i];
+                s.x += s.vx;
+                s.y += s.vy;
+                s.alpha -= 0.025;
+                if (s.alpha <= 0) {
+                    sparks.splice(i, 1);
+                    continue;
+                }
+                ctx.save();
+                ctx.globalAlpha = s.alpha;
+                ctx.fillStyle = s.color;
+                ctx.shadowBlur = 8;
+                ctx.shadowColor = s.color;
+                ctx.beginPath();
+                ctx.arc(s.x, s.y, s.size, 0, Math.PI * 2);
+                ctx.fill();
+                ctx.restore();
+            }
+
+            requestAnimationFrame(animateScene);
+        }
+        animateScene();
+
+
+        /* =====================================================================
+           7. ЗАЩИТА ОТ ПРОСМОТРА КОДА (ПКМ И ГОРЯЧИЕ КЛАВИШИ)
+           ===================================================================== */
+        document.addEventListener('contextmenu', (e) => e.preventDefault());
+        document.addEventListener('keydown', (e) => {
+            if (
+                e.keyCode === 123 ||
+                (e.ctrlKey && e.shiftKey && ['I', 'i', 'J', 'j', 'C', 'c'].includes(e.key)) ||
+                (e.ctrlKey && ['U', 'u', 'S', 's'].includes(e.key))
+            ) {
+                e.preventDefault();
+                return false;
+            }
+        });
+		
+		/* =====================================================================
+           ПАСХАЛКА GENSHIN IMPACT (ТРИПЛ-КЛИК ИЛИ СЕКРЕТНАЯ КНОПКА)
+           ==================================================================== */
+        let genshinClicks = 0;
+        let genshinTimer = null;
+
+        // Если кликнуть 3 раза по плашке "Обо мне" или аватару
+        document.querySelector('.about-card').addEventListener('click', () => {
+            genshinClicks++;
+            playCyberBeep(500 + genshinClicks * 100, 0.05, 'triangle');
+
+            clearTimeout(genshinTimer);
+            genshinTimer = setTimeout(() => { genshinClicks = 0; }, 1500);
+
+            if (genshinClicks >= 3) {
+                genshinClicks = 0;
+                triggerGenshinWish();
+            }
+        });
+
+        function triggerGenshinWish() {
+            const flash = document.getElementById('genshinFlash');
+            const banner = document.getElementById('genshinBanner');
+
+            flash.classList.add('active');
+            banner.classList.add('show');
+
+            // Звуки выпадения леги (через Web Audio API)
+            playCyberBeep(523.25, 0.1, 'sine'); // До
+            setTimeout(() => playCyberBeep(659.25, 0.1, 'sine'), 100); // Ми
+            setTimeout(() => playCyberBeep(783.99, 0.1, 'sine'), 200); // Соль
+            setTimeout(() => playCyberBeep(1046.50, 0.4, 'triangle'), 300); // До (высокое)
+
+            setTimeout(() => {
+                flash.classList.remove('active');
+                banner.classList.remove('show');
+            }, 3500);
+        }
+    </script>
+	<!-- Пасхалка Genshin Impact (Всплывающее окно молитвы) -->
+    <div id="genshinFlash" class="genshin-flash"></div>
+    <div id="genshinBanner" class="genshin-banner">
+        <div class="genshin-stars">★★★★★</div>
+        <div class="genshin-title">Молитва удалась!</div>
+        <div class="genshin-sub">✨ Выпал легендарный Picos! ✨</div>
+    </div>
+</body>
+</html>
